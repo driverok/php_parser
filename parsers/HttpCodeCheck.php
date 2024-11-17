@@ -6,10 +6,21 @@
 class HttpCodeCheck {
 
   /**
+   * Logger instance.
+   *
+   * @var mixed
+   */
+  private mixed $logger;
+
+  public function __construct($logger) {
+    $this->logger = $logger;
+  }
+
+  /**
    * Executed on successfully responses.
    */
   public function fulfilled($response, $index, $urls): void {
-    echo $urls[$index] . ' (' . $response->getStatusCode() . ')' . PHP_EOL;
+    $this->logger->info($urls[$index] . ' (' . $response->getStatusCode() . ')');
   }
 
   /**
@@ -17,7 +28,7 @@ class HttpCodeCheck {
    */
   public function rejected($reason, $index): void {
     $url = $reason->getRequest()->getUri();
-    echo "URL #$index: $url - Error: " . $reason->getMessage() . PHP_EOL;
+    $this->logger->info("URL #$index: $url - Error: " . $reason->getMessage());
   }
 
 }

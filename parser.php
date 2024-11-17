@@ -11,6 +11,9 @@ require 'helpers.php';
 use GuzzleHttp\Client;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Request;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 
 if (count($argv) < 2) {
   show_help();
@@ -35,11 +38,29 @@ if (!isset($args['parser'])) {
   exit;
 }
 
+$logger = new Logger('parser');
+$cli_handler = new StreamHandler("php://stdout");
+$output = '%message%' . PHP_EOL;
+$cli_handler->setFormatter(new LineFormatter($output));
+$logger->pushHandler($cli_handler);
+
+$output = '%datetime% > %message%' . PHP_EOL;
+$dateFormat = "Y-n-j, g:i a";
+$formatter = new LineFormatter(
+  $output,
+  $dateFormat,
+  TRUE,
+  TRUE
+);
+$file_handler = new StreamHandler('./parser.log');
+$file_handler->setFormatter($formatter);
+$logger->pushHandler($file_handler);
+
 // Check if the specified parser class exists and is instantiable.
 if (class_exists($parser_name)
   && method_exists($parser_name, 'fulfilled')
   && method_exists($parser_name, 'rejected')) {
-  $parser = new $parser_name();
+  $parser = new $parser_name($logger);
 }
 else {
   echo 'Parser ' . $parser_name . ' does not exist or does not have a fulfilled and rejected methods' . PHP_EOL;
@@ -62,7 +83,7 @@ foreach ($rows as $row) {
     $urls[] = $csv_arr[0];
   }
 }
-echo PHP_EOL . ' Processing ' . count($urls) . ' URLs' . PHP_EOL;
+$logger->info('Processing ' . count($urls) . ' URLs');
 $requests = static function ($urls) {
   foreach ($urls as $uri) {
     yield new Request('GET', $uri);
@@ -78,4 +99,4 @@ $pool = new Pool($client, $requests($urls), [
 ]);
 
 $pool->promise()->wait();
-echo PHP_EOL . ' All ' . count($urls) . ' URLs are processed' . PHP_EOL;
+$logger->info(' All ' . count($urls) . ' URLs are processed');
