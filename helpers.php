@@ -6,7 +6,6 @@
  */
 
 use GuzzleHttp\Psr7\Request;
-use JetBrains\PhpStorm\NoReturn;
 
 /**
  * Parse CLI named params.
@@ -48,7 +47,7 @@ spl_autoload_register(static function ($className) {
  * @return \Generator
  *   Guzzle response object.
  */
-function yield_request($urls): Generator {
+function yield_request(array $urls): Generator {
   foreach ($urls as $uri) {
     yield new Request('GET', $uri);
   }
@@ -57,7 +56,7 @@ function yield_request($urls): Generator {
 /**
  * Display help message.
  */
-#[NoReturn] function show_help(): void {
+function show_help(): void {
   $helpText = <<<EOT
 Usage: php parser.php parameters
 

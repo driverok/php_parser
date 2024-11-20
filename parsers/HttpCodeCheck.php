@@ -20,15 +20,14 @@ class HttpCodeCheck {
    * Executed on successfully responses.
    */
   public function fulfilled($response, $index, $urls): void {
-    $this->logger->info($urls[$index] . ' (' . $response->getStatusCode() . ')');
+    $this->logger->info($urls[$index] . ';' . $response->getStatusCode());
   }
 
   /**
    * Executed on error responses.
    */
-  public function rejected($reason, $index): void {
-    $url = $reason->getRequest()->getUri();
-    $this->logger->info("URL #$index: $url - Error: " . $reason->getMessage());
+  public function rejected($reason, $index, $urls): void {
+    $this->logger->info($urls[$index] . ';ERROR');
   }
 
 }

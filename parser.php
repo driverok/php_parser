@@ -39,19 +39,12 @@ if (!isset($args['parser'])) {
 }
 
 $logger = new Logger('parser');
-$cli_handler = new StreamHandler("php://stdout");
 $output = '%message%' . PHP_EOL;
-$cli_handler->setFormatter(new LineFormatter($output));
+$cli_handler = new StreamHandler("php://stdout");
+$formatter = new LineFormatter($output);
+$cli_handler->setFormatter($formatter);
 $logger->pushHandler($cli_handler);
 
-$output = '%datetime% > %message%' . PHP_EOL;
-$dateFormat = "Y-n-j, g:i a";
-$formatter = new LineFormatter(
-  $output,
-  $dateFormat,
-  TRUE,
-  TRUE
-);
 $file_handler = new StreamHandler('./parser.log');
 $file_handler->setFormatter($formatter);
 $logger->pushHandler($file_handler);
@@ -95,7 +88,9 @@ $pool = new Pool($client, $requests($urls), [
   'fulfilled' => static function ($response, $index) use ($parser, $urls) {
     $parser->fulfilled($response, $index, $urls);
   },
-  'rejected' => [$parser, 'rejected'],
+  'rejected' => static function ($reason, $index) use ($parser, $urls) {
+    $parser->rejected($reason, $index, $urls);
+  },
 ]);
 
 $pool->promise()->wait();
