@@ -9,6 +9,7 @@ require 'vendor/autoload.php';
 require 'helpers.php';
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Request;
 use Monolog\Formatter\LineFormatter;
@@ -59,12 +60,17 @@ else {
   echo 'Parser ' . $parser_name . ' does not exist or does not have a fulfilled and rejected methods' . PHP_EOL;
   exit;
 }
-
+$jar = new CookieJar();
 $client = new Client([
   'http_errors' => FALSE,
   'timeout' => (int) $timeout,
   'verify' => (bool) $ssl_verify,
   'allow_redirects' => (bool) $redirects,
+  'cookies' => $jar,
+  'headers' => [
+    'User-Agent' => 'testing/1.0',
+    'Accept'     => 'application/json',
+  ],
 ]);
 
 $data = file_get_contents($csv_file);
